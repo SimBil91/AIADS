@@ -16,8 +16,9 @@ def read_labyrinth(filename):
     input_file = open(filename)
     # read first line and get L and C of matrix
     L, C = [int(x) for x in input_file.readline().split()]  # split strings in line to numbers, convert strings to int
-    labyrinth = [[int(x) for x in input_file.readline().split()] for l in range(0, L)]  # read the matrix
-    #print(labyrinth, L, C)
+    labyrinth = [[int(x) for x in input_file.readline().split()] for l in input_file]  # read the matrix
+    # remove empty lines
+    labyrinth = [x for x in labyrinth if x]
     return labyrinth
 
 def print_labyrinth(labyrinth,elements):
@@ -39,7 +40,7 @@ def create_graph(labyrinth):
     # hardcopy labyrinth for processing
     labyrinth_orig=[]
     start_semaphore=0 # set to one if start node is found once
-    for x in labyrinth:
+    for x in labyrinth: # hardcopy labyrinth
         labyrinth_orig.append(list(x))      
     switches=[x for y in range(len(labyrinth)) for x in labyrinth[y] if x<200 and x>3]
     possible_sw_comb=[] # all possible combinations of pushing switches
@@ -49,8 +50,8 @@ def create_graph(labyrinth):
     for x in possible_sw_comb:
         labyrinth=[]
         for z in labyrinth_orig:
-            labyrinth.append(list(z))     
-        # switch doors
+            labyrinth.append(list(z)) # get original labyrinth    
+        # switch doorsstate according to possible_sw_comb
         door_state=[]
         for y in range(len(labyrinth)):
             for z in range(len(labyrinth[y])):
@@ -62,55 +63,31 @@ def create_graph(labyrinth):
                     door_state.append(labyrinth[y][z])
         door_state=tuple(door_state)
         # create graph
-        for x in range(len(labyrinth)):
-            for y in range(len(labyrinth[x])):
-                if labyrinth[x][y]!=0:
-                    graph[(x,y,door_state)]=[]
-                    if labyrinth[x][y]==2 and start_semaphore==0: # start cell
-                        start=(x,y,door_state)
+        for z in range(len(labyrinth)):
+            for y in range(len(labyrinth[z])):
+                if labyrinth[z][y]!=0:
+                    graph[(z,y,door_state)]=[]
+                    if labyrinth[z][y]==2 and start_semaphore==0: # start cell
+                        start=(z,y,door_state)
                         start_semaphore=1
-                    if labyrinth[x][y]==3: # goal cell
-                        goal.append((x,y,door_state))
-                    if labyrinth[x][y-1]!=0 and (labyrinth[x][y-1]>=300 or labyrinth[x][y-1]<200): # left
-                        graph[(x,y,door_state)].append((x,y-1,door_state))
-                        if labyrinth[x][y] in switches: # if a switch change doorstate
-                            door_state_temp=list(door_state)
-                            for n,i in enumerate(door_state_temp):
-                                if i-200==labyrinth[x][y]-100: # closed door
-                                    door_state_temp[n]+=100
-                                if i-300==labyrinth[x][y]-100: # open door
-                                    door_state_temp[n]-=100
-                            graph[(x,y,door_state)].append((x,y-1,tuple(door_state_temp)))
-                    if labyrinth[x][y+1]!=0 and (labyrinth[x][y+1]>=300 or labyrinth[x][y+1]<200): # right
-                        graph[(x,y,door_state)].append((x,y+1,door_state))
-                        if labyrinth[x][y] in switches: # if a switch change doorstate
-                            door_state_temp=list(door_state)
-                            for n,i in enumerate(door_state_temp):
-                                if i-200==labyrinth[x][y]-100: # closed door
-                                    door_state_temp[n]+=100
-                                if i-300==labyrinth[x][y]-100: # open door
-                                    door_state_temp[n]-=100
-                            graph[(x,y,door_state)].append((x,y+1,tuple(door_state_temp)))
-                    if labyrinth[x+1][y]!=0 and (labyrinth[x+1][y]>=300 or labyrinth[x+1][y]<300) : # down
-                        graph[(x,y,door_state)].append((x+1,y,door_state))
-                        if labyrinth[x][y] in switches: # if a switch change doorstate
-                            door_state_temp=list(door_state)
-                            for n,i in enumerate(door_state_temp):
-                                if i-200==labyrinth[x][y]-100: # closed door
-                                    door_state_temp[n]+=100
-                                if i-300==labyrinth[x][y]-100: # open door
-                                    door_state_temp[n]-=100
-                            graph[(x,y,door_state)].append((x+1,y,tuple(door_state_temp)))
-                    if labyrinth[x-1][y]!=0 and (labyrinth[x-1][y]>=300 or labyrinth[x-1][y]<200): # up
-                        graph[(x,y,door_state)].append((x-1,y,door_state))
-                        if labyrinth[x][y] in switches: # if a switch change doorstate
-                            door_state_temp=list(door_state)
-                            for n,i in enumerate(door_state_temp):
-                                if i-200==labyrinth[x][y]-100: # closed door
-                                    door_state_temp[n]+=100
-                                if i-300==labyrinth[x][y]-100: # open door
-                                    door_state_temp[n]-=100
-                            graph[(x,y,door_state)].append((x-1,y,tuple(door_state_temp)))
+                    if labyrinth[z][y]==3: # goal cell
+                        goal.append((z,y,door_state))
+                    if labyrinth[z][y] in switches: # if a switch, connect to branch with different doorstate
+                           door_state_temp=list(door_state)
+                           for n,i in enumerate(door_state_temp):
+                               if i-200==labyrinth[z][y]-100: # closed door
+                                   door_state_temp[n]+=100
+                               if i-300==labyrinth[z][y]-100: # open door
+                                   door_state_temp[n]-=100
+                           graph[(z,y,door_state)].append((z,y,tuple(door_state_temp)))
+                    if labyrinth[z][y-1]!=0 and (labyrinth[z][y-1]>=300 or labyrinth[z][y-1]<200): # left
+                        graph[(z,y,door_state)].append((z,y-1,door_state))
+                    if labyrinth[z][y+1]!=0 and (labyrinth[z][y+1]>=300 or labyrinth[z][y+1]<200): # right
+                        graph[(z,y,door_state)].append((z,y+1,door_state))  
+                    if labyrinth[z+1][y]!=0 and (labyrinth[z+1][y]>=300 or labyrinth[z+1][y]<200) : # down
+                        graph[(z,y,door_state)].append((z+1,y,door_state))
+                    if labyrinth[z-1][y]!=0 and (labyrinth[z-1][y]>=300 or labyrinth[z-1][y]<200): # up
+                        graph[(z,y,door_state)].append((z-1,y,door_state))
     return graph,start,goal
 
                                     
@@ -120,12 +97,9 @@ def translate_output(path,num_nodes):
     # output: number of actions (with push), the sequence
     sequence=''
     num_actions=num_nodes
-    translation={(0,1): 'R', (0,-1): 'L', (-1,0): 'U', (1,0): 'D'}
+    translation={(0,1): 'R', (0,-1): 'L', (-1,0): 'U', (1,0): 'D', (0,0): 'P'} # Difference 0 --> PUSH!
     for x in range(len(path)-1): #until last element
         direction=(path[x+1][0]-path[x][0],path[x+1][1]-path[x][1])
-        if path[x][2]!=path[x+1][2]:
-            num_actions+=1
-            sequence+='P'
         sequence+=translation[direction]            
     return num_actions,sequence
 
@@ -206,7 +180,7 @@ def IdDFS(adj_list,start,goal,limit):
     # output: # of nodes traversed, path
     goal_found=0
     depth_iter=1
-    while depth_iter<=limit and goal_found==0:
+    while depth_iter<limit and goal_found==0:
         field_state,queue = dict.fromkeys(adj_list,[0,0,0]), [start]
         while queue:
             field = queue.pop() # LIFO, get element from queue
@@ -389,7 +363,7 @@ if len(sys.argv)>1:
         print('file not found!')
         exit()
 else: # load default labyrinth
-    labyrinth = read_labyrinth('labyrinth')
+    labyrinth = read_labyrinth('inputTest7.txt')
 # domain dependent: create graph out of labyrinth
 graph,start,goal=create_graph(labyrinth)
 # Choose Algorithm to use:
@@ -416,7 +390,7 @@ while(number!='q'):
         current_time=time.time()
         print("Execution time in seconds: ", current_time - start_time)
         # write to file
-        f = open('BFS','w')
+        f = open('BFS.txt','w')
         f.write(str(num_actions)+'\n'+actions)
         f.close()
     elif (number=='2'):
@@ -430,11 +404,12 @@ while(number!='q'):
         current_time=time.time()
         print("Execution time in seconds: ", current_time - start_time)
         # write to file
-        f = open('DFS','w')
+        f = open('DFS.txt','w')
         f.write(str(num_actions)+'\n'+actions)
         f.close()
     elif (number=='3'):
         limit=input('Enter limit for maximum Depth of search:')
+        start_time = time.time()
         # domain independent: perform desired search algorithm given the graph
         num_nodes,actions=IdDFS(graph,start,goal,int(limit))
         # domain dependent: translate node path into (UDLR) movements
@@ -445,7 +420,7 @@ while(number!='q'):
         current_time=time.time()
         print("Execution time in seconds: ", current_time - start_time)
         # write to file
-        f = open('IdDFS','w')
+        f = open('IdDFS.txt','w')
         f.write(str(num_actions)+'\n'+actions)
         f.close() 
     elif (number=='4'):
@@ -459,7 +434,7 @@ while(number!='q'):
         current_time=time.time()
         print("Execution time in seconds: ", current_time - start_time)
         # write to file
-        f = open('Greedy','w')
+        f = open('Greedy.txt','w')
         f.write(str(num_actions)+'\n'+actions)
         f.close()
     elif (number=='5'):
@@ -473,7 +448,7 @@ while(number!='q'):
         current_time=time.time()
         print("Execution time in seconds: ", current_time - start_time)
         # write to file
-        f = open('Astar','w')
+        f = open('Astar.txt','w')
         f.write(str(num_actions)+'\n'+actions)
         f.close()
     elif (number=='6'):
@@ -487,7 +462,7 @@ while(number!='q'):
         current_time=time.time()
         print("Execution time in seconds: ", current_time - start_time)
         # write to file
-        f = open('IDAstar','w')
+        f = open('IDAstar.txt','w')
         f.write(str(num_actions)+'\n'+actions)
         f.close()
     elif (number=='q'):
