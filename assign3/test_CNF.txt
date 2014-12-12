@@ -1,0 +1,8 @@
+[('not', 'Mythical'), 'Immortal']
+['Mythical', ('not', 'Immortal')]
+['Mythical', 'Mammal']
+[('not', 'Immortal'), 'Horned']
+[('not', 'Mammal'), 'Horned']
+[('not', 'Horned'), 'Magical']
+[('not', 'Mythical')]
+

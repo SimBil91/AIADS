@@ -1,0 +1,15 @@
+(c0)[('not', 'Mythical'), 'Immortal']
+(c1)['Mythical', ('not', 'Immortal')]
+(c2)['Mythical', 'Mammal']
+(c3)[('not', 'Immortal'), 'Horned']
+(c4)[('not', 'Mammal'), 'Horned']
+(c5)[('not', 'Horned'), 'Magical']
+(c6)[('not', 'Magical')]
+
+(c7)[('not', 'Horned')] (c6,c5)
+(c8)[('not', 'Immortal')] (c7,c3)
+(c9)[('not', 'Mammal')] (c7,c4)
+(c10)[('not', 'Mythical')] (c8,c0)
+(c11)['Mythical'] (c9,c2)
+(c12)[] (c10,c11)
+TRUE
